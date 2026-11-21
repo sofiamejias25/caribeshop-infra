@@ -34,5 +34,23 @@ module "computo" {
   # la plantilla completa de cloud-init en base64.
   cloud_init = base64encode(templatefile("${path.module}/app/cloud-init.yaml", {
     app_py_base64 = filebase64("${path.module}/app/app.py")
+    key_vault_uri = module.seguridad.key_vault_uri
+    secret_name   = "db-password"
   }))
+}
+
+module "seguridad" {
+  source = "./modules/seguridad"
+
+  key_vault_name      = var.key_vault_name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  operator_ip         = var.operator_ip
+  subnet_app_id       = module.red.subnet_app_id
+}
+
+resource "azurerm_role_assignment" "vmss_key_vault_secrets_user" {
+  scope                = module.seguridad.key_vault_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = module.computo.vmss_principal_id
 }
