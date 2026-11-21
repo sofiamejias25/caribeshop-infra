@@ -1,0 +1,6 @@
+@'
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+'@ | Set-Content .\pruebas\.gitignore -Encoding UTF8

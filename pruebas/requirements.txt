@@ -1,0 +1,4 @@
+
+locust>=2.32,<3.0
+pandas>=2.2
+matplotlib>=3.9
