@@ -2,12 +2,7 @@
 import os
 from locust import HttpUser, task, between
 
-
-# Dirección de la aplicación.
-# Se configura al ejecutar Locust.
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-
-# Ruta que se probará. Por defecto, la página principal.
 TARGET_PATH = os.getenv("TARGET_PATH", "/")
 
 
@@ -17,7 +12,13 @@ class CaribeShopUser(HttpUser):
 
     @task
     def consultar_aplicacion(self):
-        self.client.get(
+        with self.client.get(
             TARGET_PATH,
-            name="Consulta principal"
-        )
+            name="Consulta principal",
+            catch_response=True
+        ) as response:
+
+            if response.status_code >= 400:
+                response.failure(
+                    f"Error HTTP {response.status_code}"
+                )
