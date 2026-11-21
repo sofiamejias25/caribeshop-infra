@@ -22,6 +22,8 @@ write_files:
       WorkingDirectory=/opt/caribeshop
       Environment=PORT=80
       Environment=HEALTH_FLAG=/var/lib/caribeshop/unhealthy
+      Environment="KEY_VAULT_URI=${key_vault_uri}"
+      Environment="SECRET_NAME=${secret_name}"
       AmbientCapabilities=CAP_NET_BIND_SERVICE
       CapabilityBoundingSet=CAP_NET_BIND_SERVICE
       NoNewPrivileges=yes
