@@ -71,6 +71,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "app" {
   instances           = var.min_instancias
   zones               = var.zonas
   zone_balance        = true
+  # Habilitamos el cifrado de los discos y datos
+  # en el host fisico que ejecuta las maquinas virtuales.
+  encryption_at_host_enabled = true
 
   # Evitamos que Azure cree maquinas adicionales durante el despliegue
   overprovision = false
