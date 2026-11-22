@@ -45,3 +45,6 @@ terraform.rc
 
 # El ejemplo de variables si se sube (sin datos reales)
 !terraform.tfvars.example
+
+# Planes de Terraform (pueden contener valores sensibles)
+*.tfplan
