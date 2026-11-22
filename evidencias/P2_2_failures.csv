@@ -1,0 +1,9 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x1367229f790>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:19:07Z,2026-11-22T18:19:07Z
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x1367229df20>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:29:36Z,2026-11-22T18:29:36Z
+GET,/,"ConnectionResetError(10054, 'Se ha forzado la interrupción de una conexión existente por el host remoto', None, 10054, None)",2,2026-11-22T18:13:13Z,2026-11-22T18:13:13Z
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x136722e0b00>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:13:34Z,2026-11-22T18:13:34Z
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x136722d9eb0>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:13:27Z,2026-11-22T18:13:27Z
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x1367229dbf0>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:13:35Z,2026-11-22T18:13:35Z
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x1367229ee00>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:11:34Z,2026-11-22T18:11:34Z
+GET,/,"ConnectTimeoutError(<HTTPConnection(host='57.156.18.174', port=80) at 0x136721caad0>, 'Connection to 57.156.18.174 timed out. (connect timeout=None)')",1,2026-11-22T18:13:34Z,2026-11-22T18:13:34Z
