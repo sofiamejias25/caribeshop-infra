@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 CARPETA = Path(__file__).parent / "resultados"
-ARCHIVO = CARPETA / "locust_stats_history.csv"
 
 
 def generar_grafica(datos, columna, titulo, etiqueta, nombre):
@@ -13,7 +12,7 @@ def generar_grafica(datos, columna, titulo, etiqueta, nombre):
         return
 
     plt.figure(figsize=(10, 5))
-    plt.plot(datos["hora"], datos[columna])
+    plt.plot(datos["hora"], datos[columna], marker="o")
     plt.title(titulo)
     plt.xlabel("Hora")
     plt.ylabel(etiqueta)
@@ -26,22 +25,29 @@ def generar_grafica(datos, columna, titulo, etiqueta, nombre):
     print(f"Gráfica creada: {nombre}")
 
 
-def main():
-    if not ARCHIVO.exists():
-        print("No existe el archivo de resultados de Locust.")
-        return
+def procesar_archivo(archivo):
+    print(f"\nProcesando: {archivo.name}")
 
-    datos = pd.read_csv(ARCHIVO)
-
-    # Normalizar nombres de columnas
+    datos = pd.read_csv(archivo)
     datos.columns = datos.columns.str.strip()
 
-    # Convertir Timestamp (Unix) a fecha
+    columnas_necesarias = [
+        "Timestamp", "Name", "Requests/s", "Failures/s", "95%"
+    ]
+
+    faltantes = [
+        columna for columna in columnas_necesarias
+        if columna not in datos.columns
+    ]
+
+    if faltantes:
+        print(f"Faltan columnas: {faltantes}")
+        return
+
     datos["hora"] = pd.to_datetime(
         datos["Timestamp"], unit="s", errors="coerce"
     )
 
-    # Utilizar únicamente los registros agregados
     datos = datos[datos["Name"] == "Aggregated"].copy()
     datos = datos.dropna(subset=["hora"])
 
@@ -49,42 +55,56 @@ def main():
         print("No hay registros agregados para graficar.")
         return
 
-    # Gráfica de solicitudes por segundo
-    generar_grafica(
-        datos, "Requests/s",
-        "Solicitudes por segundo (RPS)",
-        "Solicitudes/segundo", "rps.png"
-    )
+    for columna in ["Requests/s", "Failures/s", "95%"]:
+        datos[columna] = pd.to_numeric(
+            datos[columna], errors="coerce"
+        ).fillna(0)
 
-    # Gráfica de tiempo de respuesta p95
-    datos["95%"] = pd.to_numeric(datos["95%"], errors="coerce")
-
-    generar_grafica(
-        datos, "95%",
-        "Tiempo de respuesta percentil 95 (p95)",
-        "Milisegundos", "p95.png"
-    )
-
-    # Calcular porcentaje de errores
-    solicitudes = pd.to_numeric(
-        datos["Requests/s"], errors="coerce"
-    ).fillna(0)
-
-    errores = pd.to_numeric(
-        datos["Failures/s"], errors="coerce"
-    ).fillna(0)
+    solicitudes = datos["Requests/s"]
+    errores = datos["Failures/s"]
 
     datos["error_percent"] = (
         errores.div(solicitudes.where(solicitudes > 0)) * 100
     ).fillna(0)
 
+    nombre_base = archivo.name.replace("_stats_history.csv", "")
+
     generar_grafica(
-        datos, "error_percent",
-        "Porcentaje de errores",
-        "Errores (%)", "errores.png"
+        datos,
+        "Requests/s",
+        f"Solicitudes por segundo - {nombre_base}",
+        "Solicitudes/segundo",
+        f"{nombre_base}_rps.png"
     )
 
-    print("\nGráficas generadas correctamente.")
+    generar_grafica(
+        datos,
+        "95%",
+        f"Tiempo de respuesta P95 - {nombre_base}",
+        "Milisegundos",
+        f"{nombre_base}_p95.png"
+    )
+
+    generar_grafica(
+        datos,
+        "error_percent",
+        f"Porcentaje de errores - {nombre_base}",
+        "Errores (%)",
+        f"{nombre_base}_errores.png"
+    )
+
+
+def main():
+    archivos = list(CARPETA.glob("*_stats_history.csv"))
+
+    if not archivos:
+        print("No se encontraron archivos históricos de Locust.")
+        return
+
+    for archivo in archivos:
+        procesar_archivo(archivo)
+
+    print("\nProceso de generación de gráficas terminado.")
 
 
 if __name__ == "__main__":

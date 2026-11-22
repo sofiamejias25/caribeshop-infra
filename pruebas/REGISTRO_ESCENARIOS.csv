@@ -1,0 +1,6 @@
+﻿Escenario,Usuarios,Duracion,URL,Total_solicitudes,RPS,Tiempo_promedio_ms,P95_ms,Errores,Porcentaje_errores,Estado
+Prueba de humo,1,1 min,http://57.156.18.174,15,0.28,1544.81,16000.0,0,0.0,Registrado
+Carga inicial,5,2 min,Pendiente,,,,,,,Pendiente
+Carga media,10,3 min,Pendiente,,,,,,,Pendiente
+Carga alta,20,5 min,Pendiente,,,,,,,Pendiente
+Prueba de estres,50,5 min,Pendiente,,,,,,,Pendiente
