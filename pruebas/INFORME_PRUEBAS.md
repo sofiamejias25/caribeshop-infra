@@ -1,5 +1,4 @@
-﻿
-# Informe de pruebas de carga - CaribeShop
+﻿# Informe de pruebas de carga - CaribeShop
 
 ## 1. Objetivo
 
@@ -18,34 +17,36 @@ Evaluar el comportamiento y rendimiento de la infraestructura y aplicación Cari
 | Elemento | Descripción |
 |---|---|
 | Aplicación | CaribeShop |
-| URL evaluada | Pendiente de disponibilidad |
-| Fecha de ejecución | Pendiente |
-| Versión o commit evaluado | Pendiente |
-| Herramienta de pruebas | Locust |
+| URL evaluada | http://57.156.18.174 |
+| Fecha de ejecución | 22 de noviembre de 2026 |
+| Versión o commit evaluado | Pendiente de confirmar |
+| Herramienta de pruebas | Locust 2.47.0 |
 | Lenguaje de procesamiento | Python |
-| Entorno | Pendiente de confirmar |
+| Entorno | Aplicación desplegada en Microsoft Azure |
+
+La aplicación fue desplegada en Azure y se utilizó la dirección IP pública del balanceador para realizar la prueba inicial. La ruta evaluada fue `GET /`.
 
 ## 4. Escenarios de prueba
 
-Se proponen los siguientes escenarios para evaluar progresivamente el comportamiento de la aplicación.
+Se definieron cinco escenarios para evaluar progresivamente el comportamiento de la aplicación.
 
 | Escenario | Usuarios | Duración | Estado |
 |---|---:|---:|---|
-| Prueba de humo | 1 | 1 minuto | Pendiente |
+| Prueba de humo | 1 | 1 minuto | Ejecutada |
 | Carga inicial | 5 | 2 minutos | Pendiente |
 | Carga media | 10 | 3 minutos | Pendiente |
 | Carga alta | 20 | 5 minutos | Pendiente |
 | Prueba de estrés | 50 | 5 minutos | Pendiente |
 
-**Nota:** Los escenarios representan una planificación inicial. Su ejecución dependerá de la disponibilidad de la aplicación y de la autorización para realizar las pruebas.
+**Nota:** Las pruebas de mayor concurrencia quedan pendientes de coordinación y autorización del equipo para evitar afectar la disponibilidad de la aplicación.
 
 ## 5. Métricas evaluadas
 
-Se tendrán en cuenta las siguientes métricas:
+Se tienen en cuenta las siguientes métricas:
 
 - **Solicitudes por segundo (RPS):** cantidad de solicitudes procesadas por segundo.
 - **Tiempo promedio de respuesta:** tiempo promedio que tarda el servidor en responder.
-- **Percentil 95 (p95):** tiempo dentro del cual se completa el 95 % de las solicitudes.
+- **Percentil 95 (P95):** tiempo de respuesta por debajo del cual se completó el 95 % de las solicitudes, según el cálculo de Locust.
 - **Tasa de errores:** porcentaje de solicitudes que presentan fallos.
 - **Total de solicitudes:** cantidad de peticiones realizadas durante la prueba.
 - **Usuarios concurrentes:** cantidad de usuarios simulados al mismo tiempo.
@@ -54,61 +55,75 @@ Se tendrán en cuenta las siguientes métricas:
 
 Las evidencias generadas mediante el procesamiento de resultados se almacenan en `pruebas/resultados/`.
 
-Archivos disponibles:
+Archivos correspondientes a la prueba real de CaribeShop:
 
-- `rps.png`: comportamiento de las solicitudes por segundo.
-- `p95.png`: evolución del percentil 95 de los tiempos de respuesta.
-- `errores.png`: comportamiento de la tasa de errores.
-- `locust_stats.csv`: estadísticas generales de las pruebas.
-- `locust_stats_history.csv`: historial de estadísticas durante la ejecución.
-- `locust_failures.csv`: registro de solicitudes fallidas.
-- `locust_exceptions.csv`: registro de excepciones.
+- `caribeshop_humo_rps.png`: comportamiento de las solicitudes por segundo.
+- `caribeshop_humo_p95.png`: evolución del percentil 95 de los tiempos de respuesta.
+- `caribeshop_humo_errores.png`: comportamiento de la tasa de errores.
+- `caribeshop_humo_stats.csv`: estadísticas generales de la prueba.
+- `caribeshop_humo_stats_history.csv`: historial de estadísticas durante la ejecución.
+
+También se conservan los archivos de validación técnica realizados anteriormente contra httpbin.org. Estos no deben confundirse con los resultados de CaribeShop.
 
 ## 7. Resultados
 
-La ejecución de las pruebas contra la aplicación CaribeShop está pendiente.
+### 7.1 Prueba de humo contra CaribeShop
 
-Se registrarán los resultados de cada escenario, incluyendo:
+Se ejecutó una prueba inicial contra la aplicación desplegada en Azure utilizando Locust, con un usuario simulado durante un minuto y realizando solicitudes a la ruta principal `GET /`.
 
-- Número total de solicitudes.
-- Tiempo promedio de respuesta.
-- Percentil 95.
-- Solicitudes exitosas y fallidas.
-- Solicitudes por segundo.
-- Comportamiento general del sistema.
+**Resultados obtenidos:**
 
-Los resultados se documentarán una vez se disponga de la URL y del entorno de pruebas de CaribeShop.
+| Métrica | Resultado |
+|---|---:|
+| Usuarios simulados | 1 |
+| Duración | 1 minuto |
+| Total de solicitudes | 15 |
+| Errores | 0 |
+| Porcentaje de errores | 0 % |
+| Tiempo promedio | 1544,81 ms |
+| P95 | 16000 ms |
+| RPS | 0,28 |
+| URL evaluada | http://57.156.18.174 |
+
+### 7.2 Análisis de resultados
+
+La prueba de humo permitió comprobar que la aplicación recibió solicitudes sin registrar errores HTTP durante la ejecución.
+
+Sin embargo, el tiempo promedio de respuesta fue de 1544,81 ms y el percentil 95 alcanzó los 16000 ms. Estos valores indican que algunas respuestas presentaron tiempos elevados y que es necesario investigar el comportamiento de la aplicación.
+
+Aunque no se registraron errores, todavía no se puede concluir que el rendimiento sea satisfactorio. Se requiere revisar los tiempos de respuesta y realizar las pruebas adicionales para obtener una evaluación más completa.
 
 ## 8. Observaciones y limitaciones
 
-Se realizó una prueba inicial contra `https://httpbin.org` con el propósito de verificar el funcionamiento de Locust y el procesamiento de los archivos CSV.
+Inicialmente se realizó una prueba de validación técnica contra `https://httpbin.org` para comprobar el funcionamiento de Locust, el procesamiento de archivos CSV y la generación de gráficas.
 
-Esta prueba permitió validar la configuración de la herramienta y la generación de gráficas.
+Posteriormente, la aplicación CaribeShop quedó desplegada en Azure y fue posible ejecutar la primera prueba real contra su dirección IP pública.
 
-**Importante:** los resultados obtenidos contra httpbin.org corresponden únicamente a una prueba de validación técnica. No representan el rendimiento ni la capacidad de la aplicación CaribeShop.
+Las pruebas de carga inicial, carga media, carga alta y estrés permanecen pendientes de coordinación con el equipo.
 
-La evaluación definitiva depende de disponer de una instancia funcional de la aplicación.
+**Importante:** los resultados obtenidos contra httpbin.org corresponden únicamente a una validación técnica. No representan el rendimiento ni la capacidad de la aplicación CaribeShop.
+
 ### 8.1 Resultados de validación técnica
-
-Se ejecutó una prueba de demostración contra httpbin.org.
 
 | Métrica | Resultado |
 |---|---:|
 | Solicitudes | 133 |
 | Errores | 0 |
-| Tiempo promedio | 87.33 ms |
+| Tiempo promedio | 87,33 ms |
 | P95 | 170 ms |
-| RPS | 2.48 |
+| RPS | 2,48 |
 | Porcentaje de errores | 0 % |
 
 Estos valores validan el funcionamiento de las herramientas, pero no corresponden al rendimiento de CaribeShop.
 
 ## 9. Conclusiones
 
-La estructura de pruebas de carga se encuentra preparada mediante Locust y herramientas de análisis en Python.
+Se logró preparar y ejecutar la estructura inicial de pruebas de carga mediante Locust y herramientas de análisis en Python.
 
-Se cuenta con scripts para ejecutar pruebas y generar evidencias gráficas de rendimiento.
+La prueba de humo contra la aplicación real desplegada en Azure registró 15 solicitudes sin errores HTTP. No obstante, los tiempos de respuesta promedio y P95 fueron elevados, por lo que se requiere investigar su comportamiento antes de establecer conclusiones definitivas sobre el rendimiento.
 
-Sin embargo, todavía no es posible establecer conclusiones sobre el rendimiento de CaribeShop, debido a que falta ejecutar los escenarios contra la aplicación real.
+Se cuenta con scripts para ejecutar escenarios, registrar resultados y generar evidencias gráficas.
 
-Una vez disponible el entorno, se analizarán las métricas obtenidas para identificar posibles problemas de rendimiento y oportunidades de mejora.
+Quedan pendientes las pruebas de carga inicial, media, alta y estrés, cuya ejecución deberá coordinarse con el equipo de infraestructura.
+
+Una vez completados los escenarios, se realizará un análisis comparativo de las métricas para identificar posibles problemas de rendimiento y oportunidades de mejora.
