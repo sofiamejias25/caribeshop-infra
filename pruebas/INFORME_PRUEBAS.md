@@ -115,8 +115,26 @@ Las pruebas de carga inicial, carga media, carga alta y estrés permanecen pendi
 | Porcentaje de errores | 0 % |
 
 Estos valores validan el funcionamiento de las herramientas, pero no corresponden al rendimiento de CaribeShop.
+### 9. Análisis del tiempo de respuesta – Prueba de humo
 
-## 9. Conclusiones
+Durante la prueba de humo, ejecutada con un usuario virtual durante un minuto, se registraron 15 solicitudes y ningún error HTTP.
+
+Los resultados obtenidos fueron:
+
+- Tiempo promedio: 1.544,81 ms.
+- Tiempo mediano: 440 ms.
+- Tiempo mínimo: 345,89 ms.
+- Tiempo máximo: 15.667,79 ms.
+- Percentil 95 (P95): 16.000 ms.
+- Porcentaje de errores: 0 %.
+
+Se identificó una demora puntual considerable, reflejada en el tiempo máximo y en el P95. Aunque no se presentaron errores ni excepciones, este comportamiento indica que es necesario investigar las causas de los tiempos elevados.
+
+Debido a que la prueba se realizó con un solo usuario y únicamente 15 solicitudes, estos resultados son preliminares y no permiten determinar la capacidad máxima de la aplicación.
+
+Los escenarios de carga inicial, media, alta y estrés quedan pendientes de coordinación y ejecución con el equipo.
+
+## 10. Conclusiones
 
 Se logró preparar y ejecutar la estructura inicial de pruebas de carga mediante Locust y herramientas de análisis en Python.
 
