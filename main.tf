@@ -54,3 +54,27 @@ resource "azurerm_role_assignment" "vmss_key_vault_secrets_user" {
   role_definition_name = "Key Vault Secrets User"
   principal_id         = module.computo.vmss_principal_id
 }
+
+
+# E5 - Observabilidad centralizada de CaribeShop
+module "observabilidad" {
+  source = "./modules/observabilidad"
+
+  location            = var.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  lb_id       = module.computo.lb_id
+  alert_email = var.alert_email
+}
+
+
+# Envio de eventos de Key Vault a Log Analytics
+resource "azurerm_monitor_diagnostic_setting" "key_vault" {
+  name                       = "cs-kv-diagnostics"
+  target_resource_id         = module.seguridad.key_vault_id
+  log_analytics_workspace_id = module.observabilidad.log_analytics_id
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+}

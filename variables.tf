@@ -30,3 +30,8 @@ variable "operator_ip" {
   description = "IPv4 pública autorizada en el firewall del Key Vault."
   type        = string
 }
+
+variable "alert_email" {
+  description = "Correo para notificaciones de Azure Monitor"
+  type        = string
+}
