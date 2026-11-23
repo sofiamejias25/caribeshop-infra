@@ -55,3 +55,18 @@ output "nsg_id" {
   description = "Identificador del grupo de seguridad"
   value       = module.red.nsg_id
 }
+
+output "log_analytics_id" {
+  description = "ID de Log Analytics de CaribeShop"
+  value       = module.observabilidad.log_analytics_id
+}
+
+output "action_group_id" {
+  description = "ID del grupo de alertas"
+  value       = module.observabilidad.action_group_id
+}
+
+output "health_alert_id" {
+  description = "ID de la alerta de disponibilidad"
+  value       = module.observabilidad.health_alert_id
+}

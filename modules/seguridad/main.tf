@@ -1,6 +1,6 @@
 data "azurerm_client_config" "current" {}
-
 resource "azurerm_key_vault" "caribeshop" {
+  #checkov:skip=CKV2_AZURE_32:Entorno del taller sin Private Endpoint. Mitigado con firewall default Deny (solo snet-app por service endpoint e IP de la operadora), bypass None, RBAC de solo lectura para la identidad del VMSS, purge protection y auditoria en Log Analytics.
   name                = var.key_vault_name
   location            = var.location
   resource_group_name = var.resource_group_name
