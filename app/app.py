@@ -84,7 +84,12 @@ class Manejador(BaseHTTPRequestHandler):
         # Log corto: solo método, ruta y código (sin datos sensibles)
         print(f"{self.address_string()} {formato % args}", flush=True)
 
+class Servidor(ThreadingHTTPServer):
+    # Por defecto Python solo deja 5 conexiones en espera (listen backlog).
+    # En P1.1 eso descartó 203 conexiones y llevó el p95 a 21 s.
+    request_queue_size = 128
+    daemon_threads = True
 
 if __name__ == "__main__":
     print(f"CaribeShop escuchando en el puerto {PUERTO} (instancia {INSTANCIA})", flush=True)
-    ThreadingHTTPServer(("0.0.0.0", PUERTO), Manejador).serve_forever()
+    Servidor(("0.0.0.0", PUERTO), Manejador).serve_forever()
