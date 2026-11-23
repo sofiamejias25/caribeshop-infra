@@ -29,30 +29,28 @@ La aplicación Python proporciona los endpoints `/`, `/health` y `/secreto`.
 
 ## 3. Organización del repositorio
 
-```text
-caribeshop-infra/
-├── .github/workflows/
-│   └── terraform.yml
-├── app/
-│   ├── app.py
-│   └── cloud-init.yaml
-├── bootstrap/
-│   └── crear-backend.sh
-├── modules/
-│   ├── red/
-│   ├── computo/
-│   ├── seguridad/
-│   └── observabilidad/
-├── pruebas/
-├── evidencias/
-├── backend.tf
-├── providers.tf
-├── main.tf
-├── variables.tf
-├── outputs.tf
-├── terraform.tfvars.example
-└── README.md
-```
+    caribeshop-infra/
+    ├── .github/workflows/
+    │   └── terraform.yml
+    ├── app/
+    │   ├── app.py
+    │   └── cloud-init.yaml
+    ├── bootstrap/
+    │   └── crear-backend.sh
+    ├── modules/
+    │   ├── red/
+    │   ├── computo/
+    │   ├── seguridad/
+    │   └── observabilidad/
+    ├── pruebas/
+    ├── evidencias/
+    ├── backend.tf
+    ├── providers.tf
+    ├── main.tf
+    ├── variables.tf
+    ├── outputs.tf
+    ├── terraform.tfvars.example
+    └── README.md
 
 ## 4. Responsabilidades
 
@@ -65,11 +63,11 @@ caribeshop-infra/
 
 ## 5. Requisitos previos
 
-- Terraform >= 1.6
-- Azure CLI
-- Git
-- Cuenta de GitHub con acceso al repositorio
-- Acceso autorizado a la suscripción de Azure
+- Terraform >= 1.6.
+- Azure CLI.
+- Git.
+- Cuenta de GitHub con acceso al repositorio.
+- Acceso autorizado a la suscripción de Azure.
 
 El entorno local fue validado con Terraform 1.16.4 y AzureRM 4.81.0.
 
@@ -77,53 +75,52 @@ El entorno local fue validado con Terraform 1.16.4 y AzureRM 4.81.0.
 
 El backend remoto utiliza Azure Storage:
 
-- Grupo de recursos: `cs-tfstate-rg`
-- Storage Account: `cstfstate15943`
-- Contenedor: `tfstate`
-- Clave: `caribeshop.tfstate`
-- Autenticación: Microsoft Entra ID
+- Grupo de recursos: `cs-tfstate-rg`.
+- Storage Account: `cstfstate15943`.
+- Contenedor: `tfstate`.
+- Clave: `caribeshop.tfstate`.
+- Autenticación: Microsoft Entra ID.
+- Región: `chilecentral`.
 
 El Storage del estado es independiente del grupo de recursos de la aplicación.
 
-Antes de ejecutar el script `bootstrap/crear-backend.sh`, se debe verificar si el backend ya existe. El script genera un nombre de Storage y no debe ejecutarse nuevamente sin coordinación.
+Se verificó mediante Azure CLI que la cuenta de almacenamiento existe, presenta estado `Succeeded` y tiene deshabilitado el acceso mediante claves compartidas (`allowSharedKeyAccess = false`).
+
+La cuenta de Sara dispone de permisos de lectura sobre los recursos de la suscripción, pero no de acceso al contenido de los blobs del estado remoto. Esta separación responde al principio de mínimo privilegio.
+
+Antes de ejecutar `bootstrap/crear-backend.sh`, se debe comprobar si el backend ya existe. El script genera un nombre de Storage y no debe ejecutarse nuevamente sin coordinación.
 
 ### Validación local sin acceso al backend
 
-```bash
-terraform init -backend=false
-terraform fmt -check -recursive
-terraform validate
-```
+    terraform init -backend=false
+    terraform fmt -check -recursive
+    terraform validate
 
 Este procedimiento permite validar la configuración sin conectarse al estado remoto.
 
 ### Despliegue del entorno compartido
 
-La responsable autorizada del despliegue debe configurar las variables requeridas y comprobar el acceso al backend antes de ejecutar:
+La persona autorizada debe configurar las variables requeridas y comprobar el acceso al backend antes de ejecutar:
 
-```bash
-terraform init
-terraform plan
-terraform apply
-```
+    terraform init
+    terraform plan
+    terraform apply
 
-Para destruir recursos administrados por Terraform:
+Para destruir los recursos administrados por Terraform:
 
-```bash
-terraform destroy
-```
+    terraform destroy
 
-Los comandos de despliegue y destrucción son exclusivos de la persona autorizada por el equipo. No se deben ejecutar simultáneamente desde diferentes equipos.
+Los comandos de despliegue y destrucción deben ejecutarse únicamente por la persona autorizada por el equipo, evitando operaciones simultáneas sobre el estado remoto.
 
-El backend remoto debe conservarse mientras sea necesario mantener el estado del proyecto.
+El backend debe conservarse mientras sea necesario mantener el estado del proyecto.
 
 ## 7. Variables principales
 
 | Variable | Descripción |
 |---|---|
-| `subscription_id` | Suscripción Azure |
+| `subscription_id` | Identificador de la suscripción de Azure |
 | `location` | Región de despliegue |
-| `prefix` | Prefijo de recursos |
+| `prefix` | Prefijo de los recursos |
 | `clave_ssh_publica` | Clave pública SSH |
 | `key_vault_name` | Nombre único del Key Vault |
 | `operator_ip` | Dirección IP autorizada para Key Vault |
@@ -143,34 +140,57 @@ Etapas:
 
 1. Descargar el repositorio.
 2. Instalar Terraform.
-3. Verificar formato con `terraform fmt -check -recursive`.
+3. Verificar formato mediante `terraform fmt -check -recursive`.
 4. Inicializar sin backend mediante `terraform init -backend=false`.
-5. Validar la configuración con `terraform validate`.
+5. Validar la configuración mediante `terraform validate`.
 6. Analizar seguridad con Checkov.
 
-Checkov está configurado con `soft_fail: false`, por lo que los hallazgos no exceptuados pueden hacer fallar el workflow.
+Checkov utiliza `soft_fail: false`, por lo que los hallazgos no exceptuados provocan el fallo del análisis.
 
-Para impedir efectivamente un merge cuando falle un check, el repositorio debe tener configurada una regla de protección de la rama `main` que lo exija.
+Para impedir efectivamente un merge cuando falle un check, el repositorio debe tener una regla de protección de `main` que exija esa validación.
 
-Los cambios deben realizarse en ramas independientes y proponerse mediante Pull Requests.
+### Evidencia D2: detección y corrección de seguridad
+
+El PR #9, creado desde `feature/devsecops`, permitió comprobar el funcionamiento del pipeline bloqueante.
+
+El análisis reportó:
+
+- 24 controles aprobados.
+- 1 control fallido.
+- 1 control omitido mediante excepción documentada.
+
+El hallazgo fallido fue `CKV2_AZURE_32`, correspondiente a la ausencia de Private Endpoint en Azure Key Vault.
+
+El PR #9 se conserva como evidencia de la detección y se cerrará sin fusionar.
+
+La corrección se prepara en la rama `sara/fix-checkov`, creada a partir de `feature/devsecops`. Esta rama incorpora el trabajo anterior y una excepción justificada, junto con ajustes de integración de observabilidad.
+
+El nuevo Pull Request deberá pasar las validaciones de GitHub Actions antes de su revisión e integración.
 
 ## 9. Observabilidad
 
-El módulo `modules/observabilidad/` define:
+El módulo `modules/observabilidad/` define los recursos de monitoreo de CaribeShop.
 
 ### Log Analytics
 
-Workspace `cs-log-analytics`, con retención configurada de 30 días.
+Se utiliza el workspace existente `log-caribeshop-dev`, ubicado en `chilecentral`.
+
+Su configuración Terraform establece:
+
+- SKU: `PerGB2018`.
+- Retención: 30 días.
+
+El recurso será incorporado al estado de Terraform mediante un bloque `import`, evitando crear otro workspace.
 
 ### Azure Monitor
 
-Grupo de acciones `cs-alertas`, con receptor por correo configurable.
+El grupo de acciones `cs-alertas` permite enviar notificaciones al correo configurado mediante la variable `alert_email`.
 
-Alerta `cs-alerta-health-probe`:
+La alerta `cs-alerta-health-probe` utiliza:
 
 - Recurso supervisado: Azure Load Balancer.
 - Métrica: `DipAvailability`.
-- Agregación: Average.
+- Agregación: `Average`.
 - Umbral: inferior al 100 %.
 - Frecuencia: 1 minuto.
 - Ventana: 5 minutos.
@@ -178,9 +198,22 @@ Alerta `cs-alerta-health-probe`:
 
 ### Auditoría de Key Vault
 
-El recurso `azurerm_monitor_diagnostic_setting.key_vault`, definido en la raíz, configura el envío de eventos `AuditEvent` hacia Log Analytics.
+El recurso `azurerm_monitor_diagnostic_setting.key_vault`, definido en el `main.tf` de la raíz, utiliza el nombre `caribeshop-keyvault-audit`.
 
-La creación efectiva de estos recursos, la llegada de registros y la recepción de alertas deben verificarse en Azure después del despliegue.
+Su configuración envía eventos de la categoría `AuditEvent` hacia Log Analytics.
+
+Este diagnóstico ya existe en Azure, por lo que se declara un bloque `import` para incorporarlo al estado de Terraform sin duplicarlo.
+
+### Adopción de recursos existentes
+
+El `main.tf` de la raíz contiene dos bloques `import` para:
+
+1. `module.observabilidad.azurerm_log_analytics_workspace.caribeshop`.
+2. `azurerm_monitor_diagnostic_setting.key_vault`.
+
+La configuración y las importaciones deberán revisarse mediante `terraform plan` antes de ejecutar `apply`, para evitar reemplazos o modificaciones inesperadas.
+
+La recepción de registros y la activación de alertas se verificarán posteriormente en Azure.
 
 ## 10. Pruebas
 
@@ -198,45 +231,89 @@ Los resultados y capturas se almacenan en `pruebas/resultados/` y `evidencias/`,
 
 | Control | Situación | Tratamiento |
 |---|---|---|
-| CKV_AZURE_160 | HTTP público en puerto 80 | Excepción existente para el entorno académico |
-| CKV2_AZURE_32 | Key Vault sin Private Endpoint | Hallazgo pendiente de decisión y resolución |
+| `CKV_AZURE_160` | HTTP público en el puerto 80 | Excepción documentada para el entorno académico |
+| `CKV2_AZURE_32` | Key Vault sin Private Endpoint | Excepción justificada y autorizada para el entorno académico |
 
 ### Riesgo aceptado: HTTP público
 
 La aplicación utiliza HTTP para cumplir con la arquitectura y las pruebas del taller.
 
-Impacto: el tráfico HTTP no proporciona confidencialidad mediante TLS.
+**Impacto:** el tráfico HTTP no proporciona confidencialidad mediante TLS.
 
-Medidas actuales: NSG, balanceador de carga y control del alcance del entorno.
+**Medidas actuales:** NSG, balanceador de carga y control del alcance del entorno.
 
-Mitigación futura: implementar HTTPS con TLS, restringir el acceso y eliminar la excepción antes de un despliegue productivo.
+**Mitigación futura:** implementar HTTPS con TLS, restringir el acceso y eliminar la excepción antes de un despliegue productivo.
 
-### Riesgo pendiente: Key Vault sin Private Endpoint
+### Riesgo aceptado: Key Vault sin Private Endpoint
 
-La configuración utiliza reglas de firewall, acceso restringido por IP y subred, RBAC e identidad administrada.
+**Hallazgo:** `CKV2_AZURE_32`.
 
-Estas medidas no equivalen a un Private Endpoint.
+**Descripción:** El Key Vault de CaribeShop no utiliza Private Endpoint y mantiene habilitado su endpoint público.
 
-La decisión de implementar conectividad privada o documentar una excepción justificada debe coordinarse con la responsable del módulo de seguridad.
+**Impacto:** un atacante con credenciales válidas podría intentar acceder al servicio desde Internet. El firewall restringe las solicitudes, pero no proporciona el mismo aislamiento de red que Private Link.
 
-No se considera un riesgo aceptado hasta que dicha decisión sea aprobada y documentada.
+**Medidas de mitigación:**
+
+- Firewall con `default_action = "Deny"`.
+- Acceso de red limitado a `snet-app` mediante service endpoint y a la IP autorizada de la operadora.
+- Configuración `bypass = "None"`.
+- Identidad administrada del VMSS con el rol `Key Vault Secrets User`.
+- Protección contra eliminación permanente mediante purge protection.
+- Auditoría de eventos `AuditEvent` hacia Log Analytics.
+
+**Evidencia de seguridad:** en la prueba P3.1, un usuario con el rol `Key Vault Secrets Officer` intentó consultar el secreto desde Azure Cloud Shell. La solicitud fue rechazada con `ForbiddenByFirewall`, demostrando la aplicación de las restricciones de red.
+
+**Mejora recomendada para producción:**
+
+- Implementar Azure Private Endpoint.
+- Configurar la zona DNS privada `privatelink.vaultcore.azure.net`.
+- Establecer `public_network_access_enabled = false`.
+- Verificar la conectividad privada desde las instancias autorizadas.
+
+**Tratamiento:** excepción documentada y autorizada para el entorno académico de CaribeShop. No se considera una solución equivalente a implementar Private Endpoint.
 
 ## 12. Evidencias y estado de validación
 
 Las validaciones locales de Terraform se ejecutaron correctamente.
 
-El pipeline de GitHub Actions logró completar las etapas de formato, inicialización y validación. Checkov detectó el control `CKV2_AZURE_32`, por lo que el análisis de seguridad permanece pendiente de resolución.
+### S1 — Backend remoto
 
-El módulo de observabilidad está implementado en código y pasó `terraform validate`. Su despliegue y las pruebas de recepción de registros y alertas siguen pendientes de verificación.
+Se verificó mediante Azure CLI la configuración de la cuenta de almacenamiento:
 
-Las capturas de los controles y pruebas deben conservarse en la carpeta `evidencias/`.
+- Nombre: `cstfstate15943`.
+- Región: `chilecentral`.
+- Estado: `Succeeded`.
+- Claves compartidas deshabilitadas.
+
+Evidencia: `evidencias/S1_backend_storage.jpeg`.
+
+### D1 y D2 — DevSecOps
+
+El pipeline de GitHub Actions completó correctamente las etapas de formato, inicialización y validación.
+
+Checkov detectó el hallazgo `CKV2_AZURE_32` y provocó el fallo del análisis.
+
+Evidencia: `evidencias/D2_checkov_pr_fallido.jpeg`.
+
+La nueva rama `sara/fix-checkov` incorpora el tratamiento documentado del hallazgo.
+
+La ejecución verde del nuevo PR queda pendiente de comprobación.
+
+### E5 — Observabilidad
+
+El módulo de observabilidad está implementado en código y pasó `terraform validate`.
+
+Se actualizaron los nombres de los recursos existentes para permitir su adopción mediante Terraform.
+
+El despliegue, la importación efectiva de los recursos y las pruebas de recepción de registros y alertas todavía requieren verificación.
 
 ## 13. Consideraciones de seguridad
 
-- No publicar archivos `*.tfstate` ni `*.tfvars` reales.
+- No publicar archivos `*.tfstate` ni `.tfvars` reales.
 - No almacenar claves privadas ni secretos en Git.
 - Utilizar identidad administrada y permisos mínimos.
 - Mantener Checkov bloqueante para hallazgos no exceptuados.
-- Justificar toda excepción de seguridad.
+- Documentar y justificar toda excepción de seguridad.
 - Evitar despliegues simultáneos contra el mismo estado.
+- Revisar `terraform plan` antes de aplicar cambios.
 - Destruir los recursos de prueba cuando finalicen las actividades autorizadas.
