@@ -2,14 +2,17 @@
 
 ## 1. Objetivo
 
-Evaluar el comportamiento y rendimiento de la infraestructura y aplicación CaribeShop mediante pruebas de carga, con el propósito de identificar posibles errores, medir los tiempos de respuesta y observar el comportamiento del sistema ante diferentes niveles de concurrencia.
+Evaluar el comportamiento y rendimiento de la infraestructura y aplicación CaribeShop mediante pruebas de carga, con el propósito de identificar errores, medir los tiempos de respuesta y observar el comportamiento del sistema ante diferentes niveles de concurrencia y eventos de infraestructura en Microsoft Azure.
+
+Se analizaron los resultados de las pruebas P1 y P2, incluyendo solicitudes procesadas, fallos, percentil 95 (P95), solicitudes por segundo (RPS) y comportamiento del escalamiento automático.
 
 ## 2. Herramientas utilizadas
 
-- **Locust:** ejecución y simulación de usuarios concurrentes.
+- **Locust 2.47.0:** ejecución y simulación de usuarios concurrentes.
 - **Python:** ejecución de scripts y procesamiento de resultados.
 - **Pandas:** organización y análisis de datos.
 - **Matplotlib:** generación de gráficas estadísticas.
+- **Microsoft Azure:** infraestructura donde se desplegó la aplicación.
 - **Git y GitHub:** control de versiones y almacenamiento de evidencias.
 
 ## 3. Entorno de pruebas
@@ -18,92 +21,159 @@ Evaluar el comportamiento y rendimiento de la infraestructura y aplicación Cari
 |---|---|
 | Aplicación | CaribeShop |
 | URL evaluada | http://57.156.18.174 |
-| Fecha de ejecución | 22 de noviembre de 2026 |
-| Versión o commit evaluado | Pendiente de confirmar |
-| Herramienta de pruebas | Locust 2.47.0 |
+| Fechas de ejecución | 22 y 23 de noviembre de 2026 |
+| Versión de Locust | 2.47.0 |
 | Lenguaje de procesamiento | Python |
-| Entorno | Aplicación desplegada en Microsoft Azure |
+| Infraestructura | Microsoft Azure |
+| Herramienta de carga | Locust |
 
-La aplicación fue desplegada en Azure y se utilizó la dirección IP pública del balanceador para realizar la prueba inicial. La ruta evaluada fue `GET /`.
+Las solicitudes se dirigieron a la aplicación desplegada en Azure mediante la dirección pública del balanceador de carga. La ruta principal evaluada fue `GET /`.
 
 ## 4. Escenarios de prueba
 
-Se definieron cinco escenarios para evaluar progresivamente el comportamiento de la aplicación.
+Se ejecutaron escenarios de carga y pruebas de comportamiento de la infraestructura, identificados como P1 y P2.
 
-| Escenario | Usuarios | Duración | Estado |
-|---|---:|---:|---|
-| Prueba de humo | 1 | 1 minuto | Ejecutada |
-| Carga inicial | 5 | 2 minutos | Pendiente |
-| Carga media | 10 | 3 minutos | Pendiente |
-| Carga alta | 20 | 5 minutos | Pendiente |
-| Prueba de estrés | 50 | 5 minutos | Pendiente |
-
-**Nota:** Las pruebas de mayor concurrencia quedan pendientes de coordinación y autorización del equipo para evitar afectar la disponibilidad de la aplicación.
+| Prueba | Descripción | Resultado |
+|---|---|---|
+| P1.1 | Carga con backlog 5 | Ejecutada |
+| P1.1b | Carga con backlog 128 | Ejecutada |
+| P1.2 | Carga sin carga de CPU adicional | Ejecutada |
+| P1.2b | Carga con escalamiento | Ejecutada |
+| P2.1 | Prueba de falla y reparación de instancia | Ejecutada |
+| P2.2 | Prueba de caída de instancia en Azure | Ejecutada |
 
 ## 5. Métricas evaluadas
 
-Se tienen en cuenta las siguientes métricas:
-
 - **Solicitudes por segundo (RPS):** cantidad de solicitudes procesadas por segundo.
 - **Tiempo promedio de respuesta:** tiempo promedio que tarda el servidor en responder.
-- **Percentil 95 (P95):** tiempo de respuesta por debajo del cual se completó el 95 % de las solicitudes, según el cálculo de Locust.
-- **Tasa de errores:** porcentaje de solicitudes que presentan fallos.
-- **Total de solicitudes:** cantidad de peticiones realizadas durante la prueba.
-- **Usuarios concurrentes:** cantidad de usuarios simulados al mismo tiempo.
+- **Percentil 95 (P95):** tiempo de respuesta por debajo del cual se completó el 95 % de las solicitudes.
+- **Tasa de errores:** porcentaje de solicitudes que presentaron fallos.
+- **Total de solicitudes:** cantidad de peticiones realizadas durante cada prueba.
+- **Usuarios concurrentes:** cantidad de usuarios simulados durante la ejecución.
 
-## 6. Evidencias gráficas
+## 6. Resultados generales de las pruebas P1 y P2
 
-Las evidencias generadas mediante el procesamiento de resultados se almacenan en `pruebas/resultados/`.
+La siguiente tabla resume los resultados consolidados de las pruebas realizadas.
 
-Archivos correspondientes a la prueba real de CaribeShop:
+| Prueba | Peticiones | Fallos | P95 | RPS |
+|---|---:|---:|---:|---:|
+| P1.1 (backlog 5) | 38.951 | 2.265 (5,81 %) | 21 s | 57,7 |
+| P1.1b (backlog 128) | 51.437 | 666 (1,29 %) | 7,7 s | 76,1 |
+| P1.2 (sin carga de CPU) | 86.584 | 313 (0,36 %) | 3,5 s | 46,6 |
+| P1.2b (con escalado) | 53.112 | 172 (0,32 %) | 7,5 s | 28,6 |
+| P2.2 | 5.965 | 9 (0,15 %) | 3,4 s | 5,0 |
 
-- `caribeshop_humo_rps.png`: comportamiento de las solicitudes por segundo.
-- `caribeshop_humo_p95.png`: evolución del percentil 95 de los tiempos de respuesta.
-- `caribeshop_humo_errores.png`: comportamiento de la tasa de errores.
-- `caribeshop_humo_stats.csv`: estadísticas generales de la prueba.
-- `caribeshop_humo_stats_history.csv`: historial de estadísticas durante la ejecución.
+### 6.1 Análisis de resultados P1
 
-También se conservan los archivos de validación técnica realizados anteriormente contra httpbin.org. Estos no deben confundirse con los resultados de CaribeShop.
+En P1.1 se registraron 38.951 peticiones y 2.265 fallos, equivalentes al 5,81 %. El P95 fue de 21 segundos, lo que evidencia tiempos de respuesta elevados bajo ese escenario.
 
-## 7. Resultados
+En P1.1b se procesaron 51.437 peticiones y se registraron 666 fallos (1,29 %). El P95 disminuyó a 7,7 segundos y el rendimiento alcanzó 76,1 RPS.
 
-### 7.1 Prueba de humo contra CaribeShop
+En P1.2 se registraron 86.584 peticiones, con 313 fallos (0,36 %), un P95 de 3,5 segundos y 46,6 RPS.
 
-Se ejecutó una prueba inicial contra la aplicación desplegada en Azure utilizando Locust, con un usuario simulado durante un minuto y realizando solicitudes a la ruta principal `GET /`.
+En P1.2b, escenario con escalamiento, se procesaron 53.112 peticiones y se registraron 172 fallos (0,32 %). El P95 fue de 7,5 segundos y el rendimiento de 28,6 RPS.
 
-**Resultados obtenidos:**
+Los resultados muestran diferencias en el comportamiento de la aplicación entre escenarios. La comparación debe considerar las condiciones particulares de cada prueba y no únicamente el número de solicitudes por segundo.
+
+### 6.2 Análisis de resultados P2.1
+
+La prueba P2.1 registró los siguientes resultados:
 
 | Métrica | Resultado |
 |---|---:|
-| Usuarios simulados | 1 |
-| Duración | 1 minuto |
-| Total de solicitudes | 15 |
-| Errores | 0 |
-| Porcentaje de errores | 0 % |
-| Tiempo promedio | 1544,81 ms |
-| P95 | 16000 ms |
-| RPS | 0,28 |
-| URL evaluada | http://57.156.18.174 |
+| Total de solicitudes | 2.112 |
+| Solicitudes exitosas | 1.836 |
+| Solicitudes fallidas | 276 |
+| Porcentaje de fallos | 13,07 % |
+| Porcentaje de éxito | 86,93 % |
 
-### 7.2 Análisis de resultados
+Los archivos de Locust muestran errores de conexión (`ConnectTimeoutError`) hacia la dirección `57.156.18.174`, utilizando el puerto 80.
 
-La prueba de humo permitió comprobar que la aplicación recibió solicitudes sin registrar errores HTTP durante la ejecución.
+El análisis de los eventos registrados en Azure permite establecer la siguiente secuencia temporal (UTC):
 
-Sin embargo, el tiempo promedio de respuesta fue de 1544,81 ms y el percentil 95 alcanzó los 16000 ms. Estos valores indican que algunas respuestas presentaron tiempos elevados y que es necesario investigar el comportamiento de la aplicación.
+| Evento | Hora UTC |
+|---|---|
+| Creación de la bandera de falla lógica | 16:30:07 |
+| Instancia retirada del tráfico | 16:30:16 |
+| Azure inicia la reparación (`repairVM`) | 16:41:11 |
+| Creación de la nueva instancia | 16:41:12 |
+| Nueva instancia responde en el balanceador | 16:41:56 |
+| Finalización de la reparación | 16:46:14 |
 
-Aunque no se registraron errores, todavía no se puede concluir que el rendimiento sea satisfactorio. Se requiere revisar los tiempos de respuesta y realizar las pruebas adicionales para obtener una evaluación más completa.
+Los fallos de conexión comenzaron antes de la creación de la bandera de falla lógica y continuaron durante el intervalo de recuperación. Por esta razón, no es correcto atribuir los 276 fallos exclusivamente a la falla lógica.
 
-## 8. Observaciones y limitaciones
+La prueba permite observar el impacto de los problemas de disponibilidad y el proceso de reparación automática de la infraestructura. Los archivos crudos de Locust permiten consultar los errores y sus marcas temporales.
+
+### 6.3 Análisis de resultados P2.2
+
+P2.2 registró 5.965 solicitudes, de las cuales 9 presentaron fallos, equivalentes al 0,15 %. El P95 fue de 3,4 segundos y el rendimiento alcanzó 5,0 RPS.
+
+En las gráficas se incorporó la marca temporal del evento de caída registrado en Azure a las 18:13:09 UTC del 22 de noviembre de 2026. Esto permite comparar el comportamiento de las métricas de carga con el evento de infraestructura.
+
+## 7. Análisis temporal del escalamiento y la disponibilidad
+
+Para analizar la relación entre la carga y el comportamiento de Azure se generaron gráficas de solicitudes por segundo, P95 y porcentaje de errores.
+
+### 7.1 P1.2b: escalamiento automático
+
+Se utilizaron los registros de Locust y los eventos de instancias de Azure para identificar los cambios de capacidad.
+
+Los eventos marcados en las gráficas fueron:
+
+- **Scale-out:** 05:52:06 UTC del 23 de noviembre de 2026.
+- **Scale-in:** 06:03:35 UTC del 23 de noviembre de 2026.
+
+Las gráficas permiten observar la evolución de las solicitudes, los tiempos de respuesta y los errores durante el intervalo en que aumentó y disminuyó el número de instancias.
+
+### 7.2 P2.2: evento de caída
+
+En las gráficas de P2.2 se marcó el evento de caída de Azure a las 18:13:09 UTC del 22 de noviembre de 2026.
+
+La comparación temporal permite examinar el comportamiento de las métricas de Locust alrededor del evento registrado en la infraestructura.
+
+## 8. Evidencias
+
+Las evidencias se encuentran organizadas en los directorios `pruebas/` y `evidencias/`.
+
+### 8.1 Datos crudos de P2.1
+
+Se conservaron los siguientes archivos originales de Locust:
+
+- `evidencias/P2_1.html`
+- `evidencias/P2_1_stats.csv`
+- `evidencias/P2_1_stats_history.csv`
+- `evidencias/P2_1_failures.csv`
+- `evidencias/P2_1_exceptions.csv`
+
+Estos archivos permiten consultar las estadísticas generales, el historial de solicitudes y los errores registrados durante la prueba.
+
+### 8.2 Gráficas P1.2b
+
+- `evidencias/P1_2b_rps_azure.png`
+- `evidencias/P1_2b_p95_azure.png`
+- `evidencias/P1_2b_errores_azure.png`
+
+Scripts utilizados:
+
+- `pruebas/graficos_p1_2b.py`
+
+### 8.3 Gráficas P2.2
+
+- `evidencias/P2_2_rps_azure.png`
+- `evidencias/P2_2_p95_azure.png`
+- `evidencias/P2_2_errores_azure.png`
+
+Script utilizado:
+
+- `pruebas/graficos_p2_2.py`
+
+Las gráficas incluyen las marcas temporales de los eventos de infraestructura correspondientes a cada escenario.
+
+## 9. Validación técnica de herramientas
 
 Inicialmente se realizó una prueba de validación técnica contra `https://httpbin.org` para comprobar el funcionamiento de Locust, el procesamiento de archivos CSV y la generación de gráficas.
 
-Posteriormente, la aplicación CaribeShop quedó desplegada en Azure y fue posible ejecutar la primera prueba real contra su dirección IP pública.
-
-Las pruebas de carga inicial, carga media, carga alta y estrés permanecen pendientes de coordinación con el equipo.
-
-**Importante:** los resultados obtenidos contra httpbin.org corresponden únicamente a una validación técnica. No representan el rendimiento ni la capacidad de la aplicación CaribeShop.
-
-### 8.1 Resultados de validación técnica
+Los resultados de esa validación fueron:
 
 | Métrica | Resultado |
 |---|---:|
@@ -114,34 +184,27 @@ Las pruebas de carga inicial, carga media, carga alta y estrés permanecen pendi
 | RPS | 2,48 |
 | Porcentaje de errores | 0 % |
 
-Estos valores validan el funcionamiento de las herramientas, pero no corresponden al rendimiento de CaribeShop.
-### 9. Análisis del tiempo de respuesta – Prueba de humo
+Estos valores corresponden exclusivamente a la validación técnica contra httpbin.org. No representan el rendimiento de CaribeShop y no deben mezclarse con los resultados de las pruebas ejecutadas contra Azure.
 
-Durante la prueba de humo, ejecutada con un usuario virtual durante un minuto, se registraron 15 solicitudes y ningún error HTTP.
+La prueba de humo inicial contra CaribeShop también se conserva como una medición preliminar independiente. En ella se registraron 15 solicitudes, sin errores, con un tiempo promedio de 1.544,81 ms y un P95 de 16.000 ms.
 
-Los resultados obtenidos fueron:
+## 10. Observaciones y limitaciones
 
-- Tiempo promedio: 1.544,81 ms.
-- Tiempo mediano: 440 ms.
-- Tiempo mínimo: 345,89 ms.
-- Tiempo máximo: 15.667,79 ms.
-- Percentil 95 (P95): 16.000 ms.
-- Porcentaje de errores: 0 %.
+- Los resultados dependen de las condiciones de infraestructura y carga presentes durante cada ejecución.
+- Los eventos de Azure se analizaron utilizando sus marcas temporales en UTC.
+- Los fallos de P2.1 comenzaron antes de la creación de la bandera de falla lógica; por tanto, no deben atribuirse todos a un único evento.
+- Las gráficas temporales documentadas en este informe corresponden a P1.2b y P2.2.
+- Los archivos CSV y HTML de Locust se conservan como evidencia para permitir la revisión de los resultados.
+- La validación contra httpbin.org es independiente de las pruebas realizadas sobre CaribeShop.
 
-Se identificó una demora puntual considerable, reflejada en el tiempo máximo y en el P95. Aunque no se presentaron errores ni excepciones, este comportamiento indica que es necesario investigar las causas de los tiempos elevados.
+## 11. Conclusiones
 
-Debido a que la prueba se realizó con un solo usuario y únicamente 15 solicitudes, estos resultados son preliminares y no permiten determinar la capacidad máxima de la aplicación.
+Se ejecutaron pruebas de carga y disponibilidad sobre CaribeShop desplegada en Microsoft Azure, utilizando Locust para generar solicitudes y Python para procesar los resultados.
 
-Los escenarios de carga inicial, media, alta y estrés quedan pendientes de coordinación y ejecución con el equipo.
+Los escenarios P1 permitieron comparar el comportamiento de la aplicación bajo diferentes condiciones de carga. Se observaron porcentajes de fallos entre 0,32 % y 5,81 %, y valores de P95 entre 3,5 y 21 segundos.
 
-## 10. Conclusiones
+En P2.1 se registraron 276 fallos de conexión de un total de 2.112 solicitudes. El análisis temporal mostró que los fallos comenzaron antes de la activación de la falla lógica y que Azure inició posteriormente un proceso de reparación automática.
 
-Se logró preparar y ejecutar la estructura inicial de pruebas de carga mediante Locust y herramientas de análisis en Python.
+En P2.2 se registró un porcentaje de fallos del 0,15 %. La gráfica temporal permite relacionar las métricas de Locust con el evento de caída de Azure.
 
-La prueba de humo contra la aplicación real desplegada en Azure registró 15 solicitudes sin errores HTTP. No obstante, los tiempos de respuesta promedio y P95 fueron elevados, por lo que se requiere investigar su comportamiento antes de establecer conclusiones definitivas sobre el rendimiento.
-
-Se cuenta con scripts para ejecutar escenarios, registrar resultados y generar evidencias gráficas.
-
-Quedan pendientes las pruebas de carga inicial, media, alta y estrés, cuya ejecución deberá coordinarse con el equipo de infraestructura.
-
-Una vez completados los escenarios, se realizará un análisis comparativo de las métricas para identificar posibles problemas de rendimiento y oportunidades de mejora.
+Finalmente, se conservaron los datos crudos y las gráficas correspondientes a los escenarios documentados. Estas evidencias permiten respaldar el análisis del rendimiento, la disponibilidad y el comportamiento de la infraestructura durante las pruebas.
